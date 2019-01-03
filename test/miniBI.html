@@ -1,0 +1,292 @@
+
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="lib/esl.js"></script>
+        <script src="lib/config.js"></script>
+        <script src="lib/jquery.min.js"></script>
+        <link rel="stylesheet" href="lib/reset.css" />
+    </head>
+    <body>
+        <style>
+            body .main {
+                height: 550px;
+                margin-right: 220px;
+                margin-left: 20px;
+                margin-top: 40px;
+            }
+        </style>
+
+        <div id="main1" class="main"></div>
+
+        <script>
+
+            /**
+             * @see <https://en.wikipedia.org/wiki/Michelson%E2%80%93Morley_experiment>
+             * @see <http://bl.ocks.org/mbostock/4061502>
+             */
+            var chart;
+            var data;
+
+            require([
+                'echarts',
+                'data/stock-DJI.json'
+            ], function (echarts, rawData) {
+
+                chart = echarts.init(document.getElementById('main1'), null, {});
+
+                data = splitData(rawData);
+
+                update();
+
+                chart.on('click', function (info) {
+                    if (info.data && info.componentType === 'series') {
+                        alert([
+                            'clicked on: ',
+                            'DATA: ' + info.name,
+                            'OPEN: ' + info.data[0],
+                            'CLOSE: ' + info.data[1],
+                            'LOWEST: ' + info.data[2],
+                            'HIGHEST: ' + info.data[3],
+                            'VOLUMN: ' + info.data[4]
+                        ].join('\n'));
+                    }
+                });
+            })
+
+            function splitData(rawData) {
+                var categoryData = [];
+                var values = [];
+                var volumns = [];
+                for (var i = 0; i < rawData.length; i++) {
+                    categoryData.push(rawData[i].splice(0, 1)[0]);
+                    values.push(rawData[i])
+                    volumns.push(rawData[i][4]);
+                }
+                return {
+                    categoryData: categoryData,
+                    values: values,
+                    volumns: volumns
+                };
+            }
+
+            function calculateMA(dayCount, data) {
+                var result = [];
+                for (var i = 0, len = data.values.length; i < len; i++) {
+                    if (i < dayCount) {
+                        result.push('-');
+                        continue;
+                    }
+                    var sum = 0;
+                    for (var j = 0; j < dayCount; j++) {
+                        sum += data.values[i - j][1];
+                    }
+                    result.push(+(sum / dayCount).toFixed(3));
+                }
+                return result;
+            }
+
+            function update() {
+
+                chart.setOption({
+                    backgroundColor: '#eee',
+                    animation: false,
+                    legend: {
+                        left: 0,
+                        data: ['MA5', 'MA10', 'MA20', 'MA30']
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        }
+                    },
+                    toolbox: {
+                        feature: {
+                            dataZoom: {
+                                yAxisIndex: false
+                            },
+                            brush: {
+                                type: ['polygon', 'rect', 'lineX', 'lineY', 'keep', 'clear']
+                            }
+                        }
+                    },
+                    brush: {
+                        xAxisIndex: 'all',
+                        brushLink: 'all',
+                        outOfBrush: {
+                            colorAlpha: 0.1
+                        }
+                    },
+                    grid: [
+                        {
+                            left: '10%',
+                            right: '10%',
+                            height: 300
+                        },
+                        {
+                            left: '10%',
+                            right: '10%',
+                            height: 70,
+                            bottom: 80
+                        }
+                    ],
+                    xAxis: [
+                        {
+                            type: 'category',
+                            data: data.categoryData,
+                            scale: true,
+                            boundaryGap : false,
+                            axisLine: {onZero: false},
+                            splitLine: {show: false},
+                            splitNumber: 20,
+                            min: 'dataMin',
+                            max: 'dataMax'
+                        },
+                        {
+                            type: 'category',
+                            gridIndex: 1,
+                            data: data.categoryData,
+                            scale: true,
+                            boundaryGap : false,
+                            axisLine: {onZero: false},
+                            axisTick: {show: false},
+                            splitLine: {show: false},
+                            axisLabel: {show: false},
+                            splitNumber: 20,
+                            min: 'dataMin',
+                            max: 'dataMax'
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            scale: true,
+                            splitArea: {
+                                show: true
+                            }
+                        },
+                        {
+                            scale: true,
+                            gridIndex: 1,
+                            splitNumber: 2,
+                            axisLabel: {show: false},
+                            axisLine: {show: false},
+                            axisTick: {show: false},
+                            splitLine: {show: false}
+                        }
+                    ],
+                    dataZoom: [
+                        {
+                            type: 'inside',
+                            xAxisIndex: [0, 1],
+                            start: 98,
+                            end: 100
+                        },
+                        {
+                            show: true,
+                            xAxisIndex: [0, 1],
+                            type: 'slider',
+                            bottom: 10,
+                            start: 98,
+                            end: 100
+                        }
+                    ],
+                    series: [
+                        {
+                            name: 'MA5',
+                            type: 'line',
+                            data: calculateMA(5, data),
+                            smooth: true,
+                            lineStyle: {
+                                normal: {opacity: 0.5}
+                            }
+                        },
+                        {
+                            name: 'MA10',
+                            type: 'line',
+                            data: calculateMA(10, data),
+                            smooth: true,
+                            lineStyle: {
+                                normal: {opacity: 0.5}
+                            }
+                        },
+                        {
+                            name: 'MA20',
+                            type: 'line',
+                            data: calculateMA(20, data),
+                            smooth: true,
+                            lineStyle: {
+                                normal: {opacity: 0.5}
+                            }
+                        },
+                        {
+                            name: 'MA30',
+                            type: 'line',
+                            data: calculateMA(30, data),
+                            smooth: true,
+                            lineStyle: {
+                                normal: {opacity: 0.5}
+                            }
+                        },
+                        {
+                            name: 'Volumn',
+                            type: 'bar',
+                            xAxisIndex: 1,
+                            yAxisIndex: 1,
+                            data: data.volumns
+                        }
+                    ]
+                });
+
+                chart.on('brushSelected', renderBrushed);
+
+                function renderBrushed(params) {
+                    var sum = 0;
+                    var min = Infinity;
+                    var max = -Infinity;
+                    var countBySeries = [];
+                    var brushComponent = params.batch[0];
+
+                    var rawIndices = brushComponent.selected[0].dataIndex;
+                    for (var i = 0; i < rawIndices.length; i++) {
+                        var val = data.values[rawIndices[i]][1];
+                        sum += val;
+                        min = Math.min(val, min);
+                        max = Math.max(val, max);
+                    }
+                }
+
+                chart.dispatchAction({
+                    type: 'brush',
+                    areas: [
+                        {
+                            brushType: 'lineX',
+                            coordRange: ['2016-06-02', '2016-06-20'],
+                            xAxisIndex: 0
+                        }
+                    ]
+                });
+            }
+
+        </script>
+    </body>
+</html>
