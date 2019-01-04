@@ -58,29 +58,21 @@ under the License.
 
                 update();
 
-                chart.on('click', function (info) {
-                    if (info.data && info.componentType === 'series') {
-                        alert([
-                            'clicked on: ',
-                            'DATA: ' + info.name,
-                            'OPEN: ' + info.data[0],
-                            'CLOSE: ' + info.data[1],
-                            'LOWEST: ' + info.data[2],
-                            'HIGHEST: ' + info.data[3],
-                            'VOLUMN: ' + info.data[4]
-                        ].join('\n'));
-                    }
-                });
-            })
+            });
 
             function splitData(rawData) {
                 var categoryData = [];
                 var values = [];
                 var volumns = [];
+                var date1 = (new Date('2015-06-22')).valueOf();
+                var date2 = (new Date('2016-06-22')).valueOf();
                 for (var i = 0; i < rawData.length; i++) {
-                    categoryData.push(rawData[i].splice(0, 1)[0]);
-                    values.push(rawData[i])
-                    volumns.push(rawData[i][4]);
+                    var date = (new Date(rawData[i][0])).valueOf();
+                    if (date >= date1 && date <= date2) {
+                        categoryData.push(rawData[i].splice(0, 1)[0]);
+                        values.push(rawData[i])
+                        volumns.push(rawData[i][4]);
+                    }
                 }
                 return {
                     categoryData: categoryData,
@@ -256,24 +248,6 @@ under the License.
                         }
                     ]
                 });
-
-                chart.on('brushSelected', renderBrushed);
-
-                function renderBrushed(params) {
-                    var sum = 0;
-                    var min = Infinity;
-                    var max = -Infinity;
-                    var countBySeries = [];
-                    var brushComponent = params.batch[0];
-
-                    var rawIndices = brushComponent.selected[0].dataIndex;
-                    for (var i = 0; i < rawIndices.length; i++) {
-                        var val = data.values[rawIndices[i]][1];
-                        sum += val;
-                        min = Math.min(val, min);
-                        max = Math.max(val, max);
-                    }
-                }
 
                 chart.dispatchAction({
                     type: 'brush',
