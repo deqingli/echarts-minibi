@@ -29,8 +29,8 @@ under the License.
     <body>
         <style>
             body .main {
-                height: 550px;
-                margin-right: 220px;
+                height: 50%;
+                margin-right: 40px;
                 margin-left: 20px;
                 margin-top: 40px;
             }
@@ -54,10 +54,13 @@ under the License.
 
                 chart = echarts.init(document.getElementById('main1'), null, {});
 
+                window.onresize = function () {
+                    chart.resize();
+                };
+
                 data = splitData(rawData);
 
                 update();
-
             });
 
             function splitData(rawData) {
@@ -113,33 +116,12 @@ under the License.
                         }
                     },
                     toolbox: {
-                        feature: {
-                            dataZoom: {
-                                yAxisIndex: false
-                            },
-                            brush: {
-                                type: ['polygon', 'rect', 'lineX', 'lineY', 'keep', 'clear']
-                            }
-                        }
-                    },
-                    brush: {
-                        xAxisIndex: 'all',
-                        brushLink: 'all',
-                        outOfBrush: {
-                            colorAlpha: 0.1
-                        }
+
                     },
                     grid: [
                         {
                             left: '10%',
                             right: '10%',
-                            height: 300
-                        },
-                        {
-                            left: '10%',
-                            right: '10%',
-                            height: 70,
-                            bottom: 80
                         }
                     ],
                     xAxis: [
@@ -153,20 +135,6 @@ under the License.
                             splitNumber: 20,
                             min: 'dataMin',
                             max: 'dataMax'
-                        },
-                        {
-                            type: 'category',
-                            gridIndex: 1,
-                            data: data.categoryData,
-                            scale: true,
-                            boundaryGap : false,
-                            axisLine: {onZero: false},
-                            axisTick: {show: false},
-                            splitLine: {show: false},
-                            axisLabel: {show: false},
-                            splitNumber: 20,
-                            min: 'dataMin',
-                            max: 'dataMax'
                         }
                     ],
                     yAxis: [
@@ -175,31 +143,6 @@ under the License.
                             splitArea: {
                                 show: true
                             }
-                        },
-                        {
-                            scale: true,
-                            gridIndex: 1,
-                            splitNumber: 2,
-                            axisLabel: {show: false},
-                            axisLine: {show: false},
-                            axisTick: {show: false},
-                            splitLine: {show: false}
-                        }
-                    ],
-                    dataZoom: [
-                        {
-                            type: 'inside',
-                            xAxisIndex: [0, 1],
-                            start: 98,
-                            end: 100
-                        },
-                        {
-                            show: true,
-                            xAxisIndex: [0, 1],
-                            type: 'slider',
-                            bottom: 10,
-                            start: 98,
-                            end: 100
                         }
                     ],
                     series: [
@@ -238,29 +181,10 @@ under the License.
                             lineStyle: {
                                 normal: {opacity: 0.5}
                             }
-                        },
-                        {
-                            name: 'Volumn',
-                            type: 'bar',
-                            xAxisIndex: 1,
-                            yAxisIndex: 1,
-                            data: data.volumns
-                        }
-                    ]
-                });
-
-                chart.dispatchAction({
-                    type: 'brush',
-                    areas: [
-                        {
-                            brushType: 'lineX',
-                            coordRange: ['2016-06-02', '2016-06-20'],
-                            xAxisIndex: 0
                         }
                     ]
                 });
             }
-
         </script>
     </body>
 </html>
