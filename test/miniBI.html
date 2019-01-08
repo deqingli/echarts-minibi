@@ -29,14 +29,18 @@ under the License.
     <body>
         <style>
             body .main {
-                height: 50%;
-                margin-right: 40px;
+                height: 550px;
+                margin-right: 220px;
                 margin-left: 20px;
-                margin-top: 40px;
+                /* margin-top: 40px; */
+            }
+            #main2 {
+                height: 450px
             }
         </style>
 
         <div id="main1" class="main"></div>
+        <div id="main2" class="main"></div>
 
         <script>
 
@@ -44,7 +48,8 @@ under the License.
              * @see <https://en.wikipedia.org/wiki/Michelson%E2%80%93Morley_experiment>
              * @see <http://bl.ocks.org/mbostock/4061502>
              */
-            var chart;
+            var chart1;
+            var chart2;
             var data;
 
             require([
@@ -52,16 +57,64 @@ under the License.
                 'data/stock-DJI.json'
             ], function (echarts, rawData) {
 
-                chart = echarts.init(document.getElementById('main1'), null, {});
+                chart1 = echarts.init(document.getElementById('main1'), null, {});
 
                 window.onresize = function () {
-                    chart.resize();
+                    chart1.resize();
                 };
 
                 data = splitData(rawData);
 
                 update();
+
+                setTimeout(function () {
+                    chart1.dispatchAction({
+                        type: 'brush',
+                        areas: [
+                            {
+                                brushType: 'lineX',
+                                coordRange: ['2016-05-17', '2016-06-20'],
+                                xAxisIndex: 0
+                            }
+                        ]
+                    });
+                }, 0);
+
+                chart1.on('brushselected', renderBrushed);
+                var i = 0;
+
+                function renderBrushed(params) {
+                    // var i = 0;
+                    console.log(params, i++);
+                    if (!chart2) {
+                        chart2 = echarts.init(document.getElementById('main2'), 'vintage');
+                    }
+                    var brushComponent = params.batch[0].areas;
+                    var dateRange = [];
+                    for (var i = 0; i < brushComponent.length; i++) {
+                        dateRange.push(brushComponent[i].coordRange);
+                    }
+
+                    var rawContrastSeries = generateContrastSeries(dateRange);
+
+
+
+                }
             });
+
+            function generateContrastSeries(dateRange) {
+                var contrastSeries = [];
+                for(var i = 0; i < dateRange.length; i++) {
+                    contrastSeries[i] = [];
+                    for(var j = 0; j < data.values.length; j++) {
+                        var date = (new Date(data.values[j][0])).valueOf();
+                        if (date >= dateRange[i][0] && date <= dateRange[i][1]) {
+                            contrastSeries[i].push(data.values[j]);
+                        }
+                    }
+                }
+                return contrastSeries;
+            }
 
             function splitData(rawData) {
                 var categoryData = [];
@@ -72,7 +125,7 @@ under the License.
                 for (var i = 0; i < rawData.length; i++) {
                     var date = (new Date(rawData[i][0])).valueOf();
                     if (date >= date1 && date <= date2) {
-                        categoryData.push(rawData[i].splice(0, 1)[0]);
+                        // categoryData.push(rawData[i].splice(0, 1)[0]);
                         values.push(rawData[i])
                         volumns.push(rawData[i][4]);
                     }
@@ -95,14 +148,14 @@ under the License.
                     for (var j = 0; j < dayCount; j++) {
                         sum += data.values[i - j][1];
                     }
-                    result.push(+(sum / dayCount).toFixed(3));
+                    result.push([data.values[i][0], +(sum / dayCount).toFixed(3)]);
                 }
                 return result;
             }
 
             function update() {
 
-                chart.setOption({
+                chart1.setOption({
                     backgroundColor: '#eee',
                     animation: false,
                     legend: {
@@ -116,7 +169,33 @@ under the License.
                         }
                     },
                     toolbox: {
-
+                        feature: {
+                            myContrast: {
+                                show: true,
+                                title: 'miniBI',
+                                icon: 'M17.136,19.407l6.678-6.678l-2.408-2.408l5.919,0.067l0.011,1.068h0.022l-0.022,0.034l0.022,4.781l-2.408-2.408l-7.813,7.814l-4.543-4.543l-6.814,5.679v-2.271l6.814-5.679L17.136,19.407z M29.629,6.914H2.371v18.172h27.258V6.914zM29.572,27.357H2.371c-1.09,0-2.271-1.158-2.271-2.237V6.914c0-1.102,1.158-2.271,2.328-2.271h27.201c1.09,0,2.271,1.158,2.271,2.237v18.206C31.9,26.188,30.742,27.357,29.572,27.357z',
+                                onclick: function () {
+                                    chart1.dispatchAction({
+                                        type: 'takeGlobalCursor',
+                                        key: 'brush',
+                                        brushOption: {
+                                            brushType: 'lineX',
+                                            brushMode: 'multiple'
+                                        }
+                                    });
+                                }
+                            },
+                            brush: {
+                                type: ['polygon', 'rect', 'lineX', 'lineY', 'keep', 'clear']
+                            }
+                        }
+                    },
+                    brush: {
+                        xAxisIndex: 'all',
+                        brushLink: 'all',
+                        outOfBrush: {
+                            colorAlpha: 0.1
+                        }
                     },
                     grid: [
                         {
@@ -126,8 +205,8 @@ under the License.
                     ],
                     xAxis: [
                         {
-                            type: 'category',
-                            data: data.categoryData,
+                            type: 'time',
+                            // data: data.categoryData,
                             scale: true,
                             boundaryGap : false,
                             axisLine: {onZero: false},
@@ -151,6 +230,7 @@ under the License.
                             type: 'line',
                             data: calculateMA(5, data),
                             smooth: true,
+                            showSymbol: false,
                             lineStyle: {
                                 normal: {opacity: 0.5}
                             }
@@ -160,6 +240,7 @@ under the License.
                             type: 'line',
                             data: calculateMA(10, data),
                             smooth: true,
+                            showSymbol: false,
                             lineStyle: {
                                 normal: {opacity: 0.5}
                             }
@@ -169,6 +250,7 @@ under the License.
                             type: 'line',
                             data: calculateMA(20, data),
                             smooth: true,
+                            showSymbol: false,
                             lineStyle: {
                                 normal: {opacity: 0.5}
                             }
@@ -178,13 +260,16 @@ under the License.
                             type: 'line',
                             data: calculateMA(30, data),
                             smooth: true,
+                            showSymbol: false,
                             lineStyle: {
                                 normal: {opacity: 0.5}
                             }
                         }
                     ]
                 });
+
             }
+
         </script>
     </body>
 </html>
