@@ -84,39 +84,106 @@ under the License.
                 var i = 0;
 
                 function renderBrushed(params) {
-                    // var i = 0;
-                    console.log(params, i++);
+                    var count = 0;
+                    console.log(params, count++);
                     if (!chart2) {
                         chart2 = echarts.init(document.getElementById('main2'), 'vintage');
                     }
+
+                    var selectedSeries = params.batch[0].selected;
+
                     var brushComponent = params.batch[0].areas;
                     var dateRange = [];
                     for (var i = 0; i < brushComponent.length; i++) {
                         dateRange.push(brushComponent[i].coordRange);
                     }
 
-                    var rawContrastSeries = generateContrastSeries(dateRange);
+                    var option = {
+                        animation: false,
+                        legend: {
+                            data: ['MA5', 'MA10', 'MA20', 'MA30']
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'line'
+                            },
+                        },
+                        grid: [
+                            {
+                                left: '10%',
+                                right: '10%'
+                            }
+                        ],
+                        xAxis: [],
+                        yAxis: [
+                            {
+                                scale: true,
+                                splitArea: {
+                                    show: true
+                                }
+                            }
+                        ],
+                        series: []
+                    };
 
+                    var rawContrastData = generateContrastData(dateRange);
 
+                    var processContrastData = [];
 
+                    var contrastSeries = [];
+
+                    for (var j = 0; j < rawContrastData.length; j++) {
+                        var processData = splitData(rawContrastData[j], true);
+                        processContrastData.push(processData);
+                        option.xAxis.push({
+                            type: 'category',
+                            data: processData.categoryData,
+                            scale: true,
+                            boundaryGap: false,
+                            axisLine: {
+                                onZero: false
+                            },
+                            splitNumber: 20,
+                            min: 'dataMin',
+                            max: 'dataMax'
+                        });
+
+                        for (var k = 0; k < selectedSeries.length; k++) {
+                            option.series.push({
+                                name: selectedSeries[k].seriesName,
+                                type: 'line',
+                                xAxisIndex: j,
+                                data: calculateMA(5, processData, true),
+                                smooth: true,
+                                lineStyle: {
+                                    normal: 0.6 * Math.pow(0.9, j)
+                                }
+                            });
+                        }
+
+                    }
+
+                    chart2.setOption(option);
                 }
             });
 
-            function generateContrastSeries(dateRange) {
-                var contrastSeries = [];
+
+            function generateContrastData(dateRange) {
+                var contrastData = [];
                 for(var i = 0; i < dateRange.length; i++) {
-                    contrastSeries[i] = [];
+                    contrastData[i] = [];
                     for(var j = 0; j < data.values.length; j++) {
                         var date = (new Date(data.values[j][0])).valueOf();
                         if (date >= dateRange[i][0] && date <= dateRange[i][1]) {
-                            contrastSeries[i].push(data.values[j]);
+                            contrastData[i].push(data.values[j]);
                         }
                     }
                 }
-                return contrastSeries;
+                return contrastData;
             }
 
-            function splitData(rawData) {
+            function splitData(rawData, ifBI) {
                 var categoryData = [];
                 var values = [];
                 var volumns = [];
@@ -125,7 +192,9 @@ under the License.
                 for (var i = 0; i < rawData.length; i++) {
                     var date = (new Date(rawData[i][0])).valueOf();
                     if (date >= date1 && date <= date2) {
-                        // categoryData.push(rawData[i].splice(0, 1)[0]);
+                        if (ifBI) {
+                            categoryData.push(rawData[i].splice(0, 1)[0]);
+                        }
                         values.push(rawData[i])
                         volumns.push(rawData[i][4]);
                     }
@@ -137,7 +206,7 @@ under the License.
                 };
             }
 
-            function calculateMA(dayCount, data) {
+            function calculateMA(dayCount, data, ifBI) {
                 var result = [];
                 for (var i = 0, len = data.values.length; i < len; i++) {
                     if (i < dayCount) {
@@ -148,7 +217,12 @@ under the License.
                     for (var j = 0; j < dayCount; j++) {
                         sum += data.values[i - j][1];
                     }
-                    result.push([data.values[i][0], +(sum / dayCount).toFixed(3)]);
+                    if (ifBI) {
+                        result.push(+(sum / dayCount).toFixed(3));
+                    }
+                    else {
+                        result.push([data.values[i][0], +(sum / dayCount).toFixed(3)]);
+                    }
                 }
                 return result;
             }
