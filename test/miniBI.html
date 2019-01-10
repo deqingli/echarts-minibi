@@ -51,6 +51,7 @@ under the License.
             var chart1;
             var chart2;
             var data;
+            var MAData;
 
             require([
                 'echarts',
@@ -61,9 +62,12 @@ under the License.
 
                 window.onresize = function () {
                     chart1.resize();
+                    chart2.resize();
                 };
 
                 data = splitData(rawData);
+
+                MAData = [calculateMA(5, data), calculateMA(10, data), calculateMA(20, data), calculateMA(30, data)];
 
                 update();
 
@@ -81,11 +85,13 @@ under the License.
                 }, 0);
 
                 chart1.on('brushselected', renderBrushed);
-                var i = 0;
+
+                var count = 0;
 
                 function renderBrushed(params) {
-                    var count = 0;
+
                     console.log(params, count++);
+
                     if (!chart2) {
                         chart2 = echarts.init(document.getElementById('main2'), 'vintage');
                     }
@@ -129,16 +135,10 @@ under the License.
 
                     var rawContrastData = generateContrastData(dateRange);
 
-                    var processContrastData = [];
-
-                    var contrastSeries = [];
-
                     for (var j = 0; j < rawContrastData.length; j++) {
-                        var processData = splitData(rawContrastData[j], true);
-                        processContrastData.push(processData);
                         option.xAxis.push({
                             type: 'category',
-                            data: processData.categoryData,
+                            data: generateContrastSeries(rawContrastData[j]['ma0']).categoryAxisData,
                             scale: true,
                             boundaryGap: false,
                             axisLine: {
@@ -154,7 +154,7 @@ under the License.
                                 name: selectedSeries[k].seriesName,
                                 type: 'line',
                                 xAxisIndex: j,
-                                data: calculateMA(5, processData, true),
+                                data: generateContrastSeries(rawContrastData[j]['ma'+ k]).seriesData,
                                 smooth: true,
                                 lineStyle: {
                                     normal: 0.6 * Math.pow(0.9, j)
@@ -168,15 +168,38 @@ under the License.
                 }
             });
 
+            function generateContrastSeries(contrastSeriesData) {
+                var categoryAxisData = [];
+                var seriesData  = [];
+                for (var i = 0; i < contrastSeriesData.length; i++) {
+                    categoryAxisData.push(contrastSeriesData[i][0]);
+                    seriesData.push(contrastSeriesData[i][1]);
+                }
+                return {
+                    categoryAxisData: categoryAxisData,
+                    seriesData: seriesData
+                };
+            }
+
 
             function generateContrastData(dateRange) {
                 var contrastData = [];
                 for(var i = 0; i < dateRange.length; i++) {
-                    contrastData[i] = [];
-                    for(var j = 0; j < data.values.length; j++) {
-                        var date = (new Date(data.values[j][0])).valueOf();
-                        if (date >= dateRange[i][0] && date <= dateRange[i][1]) {
-                            contrastData[i].push(data.values[j]);
+                    contrastData[i] = {};
+                    for (var l = 0; l < MAData.length; l++) {
+                        var name = 'ma'+ l;
+                        contrastData[i][name] = [];
+                        for(var j = 0; j < MAData[l].length; j++) {
+                            var date;
+                            if (typeof dateRange[i][0] === 'string') {
+                                date = MAData[l][j][0];
+                            }
+                            else {
+                                date = (new Date(MAData[l][j][0])).getTime();
+                            }
+                            if (date >= dateRange[i][0] && date <= dateRange[i][1]) {
+                                contrastData[i][name].push(MAData[l][j]);
+                            }
                         }
                     }
                 }
@@ -302,7 +325,7 @@ under the License.
                         {
                             name: 'MA5',
                             type: 'line',
-                            data: calculateMA(5, data),
+                            data: MAData[0],
                             smooth: true,
                             showSymbol: false,
                             lineStyle: {
@@ -312,7 +335,7 @@ under the License.
                         {
                             name: 'MA10',
                             type: 'line',
-                            data: calculateMA(10, data),
+                            data: MAData[1],
                             smooth: true,
                             showSymbol: false,
                             lineStyle: {
@@ -322,7 +345,7 @@ under the License.
                         {
                             name: 'MA20',
                             type: 'line',
-                            data: calculateMA(20, data),
+                            data: MAData[2],
                             smooth: true,
                             showSymbol: false,
                             lineStyle: {
@@ -332,7 +355,7 @@ under the License.
                         {
                             name: 'MA30',
                             type: 'line',
-                            data: calculateMA(30, data),
+                            data: MAData[3],
                             smooth: true,
                             showSymbol: false,
                             lineStyle: {
@@ -341,9 +364,7 @@ under the License.
                         }
                     ]
                 });
-
             }
-
         </script>
     </body>
 </html>
