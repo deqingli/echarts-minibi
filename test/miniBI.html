@@ -35,7 +35,8 @@ under the License.
                 /* margin-top: 40px; */
             }
             #main2 {
-                height: 450px
+                height: 450px;
+                margin-bottom: 10px;
             }
         </style>
 
@@ -107,6 +108,7 @@ under the License.
                     var option = {
                         animation: false,
                         legend: {
+                            left: 0,
                             data: ['MA5', 'MA10', 'MA20', 'MA30']
                         },
                         tooltip: {
@@ -118,7 +120,9 @@ under the License.
                         grid: [
                             {
                                 left: '10%',
-                                right: '10%'
+                                right: '8%',
+                                bottom: '10%',
+                                height: 300
                             }
                         ],
                         xAxis: [],
@@ -144,6 +148,39 @@ under the License.
                             axisLine: {
                                 onZero: false
                             },
+                            offset: j > 1 ? (j-1) * 45 : 0,
+                            axisLabel: {
+                                formatter: function (value, index) {
+                                    var day = new Date(value).getDay();
+                                    // var day = date.getDay();
+                                    var week;
+                                    switch (day) {
+                                        case 0:
+                                            week = 'Sunday';
+                                            break;
+                                        case 1:
+                                            week = 'Monday';
+                                            break;
+                                        case 2:
+                                            week = 'Tuesday';
+                                            break;
+                                        case 3:
+                                            week = 'Wednesday';
+                                            break;
+                                        case 4:
+                                            week = 'Thursday';
+                                            break;
+                                        case 5:
+                                            week = 'Friday';
+                                            break;
+                                        case 6:
+                                            week = 'Saturday';
+                                    }
+                                    return value + '\n' + week;
+
+                                }
+
+                            },
                             splitNumber: 20,
                             min: 'dataMin',
                             max: 'dataMax'
@@ -157,11 +194,12 @@ under the License.
                                 data: generateContrastSeries(rawContrastData[j]['ma'+ k]).seriesData,
                                 smooth: true,
                                 lineStyle: {
-                                    normal: 0.6 * Math.pow(0.9, j)
+                                    normal: {
+                                        opacity: 0.8 * Math.pow(0.6, j)
+                                    }
                                 }
                             });
                         }
-
                     }
 
                     chart2.setOption(option);
