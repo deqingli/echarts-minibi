@@ -47,31 +47,63 @@ text {
 <script src="../dist/echarts.js"></script>
 <script>
 
-d3.csv("data/little_program_performance.csv", function (error, rawData) {
+d3.csv("data/program_performance.csv", function (error, rawData) {
     if (error) throw error;
 
     console.log(rawData);
 
-
-
     var frontSeriesData = rawData.map(function (item) {
-        return [
-            +item.cost_front,
-            +item.cost_all
-        ];
+        if (+item.cost_front > 0) {
+            return [
+                +item.cost_front,
+                +item.cost_all
+            ];
+        }
     });
 
     var frameworkSeriesData = rawData.map(function (item) {
-        return [
-            +item.cost_framework,
-            +item.cost_all
-        ];
+        if (+item.cost_framework > 0) {
+            return [
+                +item.cost_framework,
+                +item.cost_all
+            ];
+        }
     });
 
     var chart = echarts.init(document.getElementById('main'));
 
+    chart.setOption({
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: ['front', 'framework']
+        },
+        xAxis: {
+            type: 'value',
+            scale: true
+        },
+        yAxis: {
+            type: 'value'
+        },
+        grid: {
 
-    chart.setOption(option);
+        },
+        series: [
+            {
+                name: 'front',
+                type: 'scatter',
+                data: frontSeriesData
+
+            },
+            {
+                name: 'framework',
+                type: 'scatter',
+                data: frameworkSeriesData
+
+            }
+        ]
+    });
 
 });
 
