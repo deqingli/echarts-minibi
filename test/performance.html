@@ -41,6 +41,8 @@ under the License.
                     return [dataItem.datetime, +dataItem.cost_framework, +dataItem.cost_front, +dataItem.cost_all]
                 });
 
+                var labelData = ['总时长', '框架启动时长', '前端渲染时长'];
+
                 var frame_diff, front_diff, all_diff;
                 for (var i = data.length - 1; i > -1; i--) {
                     if (i === 0) {
@@ -56,8 +58,9 @@ under the License.
                     data[i].push(frame_diff, front_diff, all_diff);
                 }
 
-                var LINEWIDTH = 20;
-                var LINEHEIGHT = 20;
+                var BEZIER_OFFSET = 15;
+                var LINEHEIGHT = 15;
+                var DISTANCE = 65;
 
                 var chart = echarts.init(document.getElementById('main'));
 
@@ -71,6 +74,50 @@ under the License.
                     front_diff: 5,
                     all_diff: 6
                 };
+
+                function renderLabel(params, api) {
+                    var coordSys = params.coordSys;
+                    var x = coordSys.x - 50;
+                    var y = coordSys.y + 35
+
+                    return {
+                        type: 'group',
+                        children: [{
+                            type: 'text',
+                            style: {
+                                text: labelData[0],
+                                textFont: api.font({
+                                    fontSize: 14
+                                }),
+                                textAlign: 'left',
+                                textVerticalAlign: 'bottom'
+                            },
+                            position: [x, y]
+                        }, {
+                            type: 'text',
+                            style: {
+                                text: labelData[1],
+                                textFont: api.font({
+                                    fontSize: 14
+                                }),
+                                textAlign: 'center',
+                                textVerticalAlign: 'bottom'
+                            },
+                            position: [x, y + DISTANCE]
+                        }, {
+                            type: 'text',
+                            style: {
+                                text: labelData[2],
+                                textFont: api.font({
+                                    fontSize: 14
+                                }),
+                                textAlign: 'center',
+                                textVerticalAlign: 'bottom'
+                            },
+                            position: [x, y + DISTANCE * 2]
+                        }]
+                    };
+                }
 
                 chart.setOption({
                     title: {
@@ -105,6 +152,8 @@ under the License.
                                 0
                             ]);
                             var all_diff = api.value(dims.all_diff);
+                            var frame_diff = api.value(dims.frame_diff);
+                            var front_diff = api.value(dims.front_diff);
 
                             return {
                                 type: 'group',
@@ -115,9 +164,9 @@ under the License.
                                         shape: {
                                             x1: point[0],
                                             y1: 50,
-                                            x2: point[0] + LINEWIDTH,
-                                            y2: all_diff > 0 ? 50 - LINEHEIGHT : 50 + LINEHEIGHT,
-                                            cpx1: point[0] + LINEWIDTH,
+                                            x2: point[0] + BEZIER_OFFSET,
+                                            y2: all_diff > 0 ? 50 - BEZIER_OFFSET : 50 + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET,
                                             cpy1: 50,
                                             percent: 1
                                         },
@@ -127,6 +176,44 @@ under the License.
                                             fill: null,
                                             stroke: all_diff > 0 ? 'red' : 'green'
                                         }
+                                    },
+                                    {
+                                        type: 'bezierCurve',
+                                        name: 'frame_diff',
+                                        shape: {
+                                            x1: point[0],
+                                            y1: 50 + DISTANCE,
+                                            x2: point[0] + BEZIER_OFFSET,
+                                            y2: frame_diff > 0 ? 50 + DISTANCE - BEZIER_OFFSET : 50 + DISTANCE + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET,
+                                            cpy1: 50 + DISTANCE,
+                                            percent: 1
+                                        },
+                                        position: [0, 40],
+                                        style: {
+                                            lineWidth: 2,
+                                            fill: null,
+                                            stroke: frame_diff > 0 ? 'red' : 'green'
+                                        }
+                                    },
+                                    {
+                                        type: 'bezierCurve',
+                                        name: 'front_diff',
+                                        shape: {
+                                            x1: point[0],
+                                            y1: 50 + 65 * 2,
+                                            x2: point[0] + BEZIER_OFFSET,
+                                            y2: front_diff > 0 ? (50 + DISTANCE * 2) - BEZIER_OFFSET : (50 + DISTANCE * 2) + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET,
+                                            cpy1: 50 + DISTANCE * 2,
+                                            percent: 1
+                                        },
+                                        position: [0, 40],
+                                        style: {
+                                            lineWidth: 2,
+                                            fill: null,
+                                            stroke: front_diff > 0 ? 'red' : 'green'
+                                        }
                                     }
                                 ]
                             };
@@ -135,6 +222,14 @@ under the License.
                             single: 0
                         },
                         data: data
+                    }, {
+                        type: 'custom',
+                        coordinateSystem: 'singleAxis',
+                        renderItem: renderLabel,
+                        data: labelData,
+                        tooltip: {
+                            trigger: 'item'
+                        }
                     }]
                 });
 
