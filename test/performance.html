@@ -19,137 +19,127 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <style>
+            html, body, #main {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <div id="main"></div>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="../dist/echarts.js"></script>
+        <script>
 
-<meta charset="utf-8">
-<style>
-#main {
-    width: 1000px;
-    height: 900px;
-}
-</style>
+            d3.csv("data/program_performance.csv", function (error, rawData) {
+                if (error) throw error;
 
+                var data = echarts.util.map(rawData, function (dataItem) {
+                    return [dataItem.datetime, +dataItem.cost_framework, +dataItem.cost_front, +dataItem.cost_all]
+                });
 
-<div id="main"></div>
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="../dist/echarts.js"></script>
-<script>
+                var frame_diff, front_diff, all_diff;
+                for (var i = data.length - 1; i > -1; i--) {
+                    if (i === 0) {
+                        frame_diff = data[i][1];
+                        front_diff = data[i][2];
+                        all_diff = data[i][3];
+                    }
+                    else {
+                        frame_diff = data[i][1] - data[i - 1][1];
+                        front_diff = data[i][2] - data[i - 1][2];
+                        all_diff = data[i][3] - data[i - 1][3];
+                    }
+                    data[i].push(frame_diff, front_diff, all_diff);
+                }
 
-d3.csv("data/program_performance.csv", function (error, rawData) {
-    if (error) throw error;
+                var LINEWIDTH = 20;
+                var LINEHEIGHT = 20;
 
-    var data = echarts.util.map(rawData, function (dataItem) {
-        return [dataItem.datetime, +dataItem.cost_framework, +dataItem.cost_front, +dataItem.cost_all]
-    });
+                var chart = echarts.init(document.getElementById('main'));
 
-    var frame_diff, front_diff, all_diff;
-    for (var i = data.length - 1; i > -1; i--) {
-        if (i === 0) {
-            frame_diff = data[i][1];
-            front_diff = data[i][2];
-            all_diff = data[i][3];
-        }
-        else {
-            frame_diff = data[i][1] - data[i - 1][1];
-            front_diff = data[i][2] - data[i - 1][2];
-            all_diff = data[i][3] - data[i - 1][3];
-        }
-        data[i].push(frame_diff, front_diff, all_diff);
-    }
-
-    var LINEWIDTH = 30;
-    var LINEHEIGHT = 30;
-
-    var chart = echarts.init(document.getElementById('main'));
-
-    //used for dimension map and encode.
-    var dims = {
-        time: 0,
-        framework: 1,
-        front: 2,
-        all: 3,
-        frame_diff: 4,
-        front_diff: 5,
-        all_diff: 6
-    };
-
-    chart.setOption({
-        title: {
-            text: '性能数据分析 demo',
-            subtext: '数据纯属虚构',
-            left: 'center'
-        },
-        tooltip: {
-            trigger: 'axis',
-            // formatter: function (params) {
-            //     return params.value[dims.time];
-
-
-            // }
-        },
-        singleAxis: {
-            left: 160,
-            top: 60,
-            type: 'time',
-            position: 'top'
-            // data:
-        },
-        // dataZoom: [{
-        //     type: 'inside',
-        //     singleAxisIndex: 0,
-        //     minSpan: 7,
-        //     height: 20,
-        //     bottom: 50,
-        //     handleIcon: 'M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-        //     handleSize: '120%'
-        // }],
-        series: [{
-            type: 'custom',
-            coordinateSystem: 'singleAxis',
-            renderItem: function (params, api) {
-                var point = api.coord([
-                    api.value(dims.time),
-                    0
-                ]);
-                var all_diff = api.value(dims.all_diff);
-
-                return {
-                    type: 'group',
-                    children: [
-                        {
-                            type: 'bezierCurve',
-                            shape: {
-                                x1: point[0],
-                                y1: 50,
-                                x2: point[0] + LINEWIDTH,
-                                y2: all_diff > 0 ? 50 - LINEHEIGHT : 50 + LINEHEIGHT,
-                                cpx1: point[0] + LINEWIDTH,
-                                cpy1: 50
-                            },
-                            position: [point[0], 50],
-                            style: {
-                                lineWidth: 2,
-                                fill: all_diff > 0 ? '#ff0000' : '008000'
-                            }
-                        }, {
-                           type: 'text',
-                           rotation: -Math.PI / 2,
-                           position: [point[0], 100],
-                           style: {
-                               text: echarts.format.formatTime('yyyyMMdd', api.value(dims.time)),
-                               fill: 'blue '
-                           }
-                        }
-                    ]
+                //used for dimension map and encode.
+                var dims = {
+                    time: 0,
+                    framework: 1,
+                    front: 2,
+                    all: 3,
+                    frame_diff: 4,
+                    front_diff: 5,
+                    all_diff: 6
                 };
-            },
-            encode: {
-                single: 0
-            },
-            data: data
-        }]
-    });
+
+                chart.setOption({
+                    title: {
+                        text: '性能数据分析 demo',
+                        subtext: '数据纯属虚构',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    singleAxis: {
+                        left: 100,
+                        top: 65,
+                        type: 'time',
+                        position: 'top'
+                    },
+                    dataZoom: [{
+                        type: 'inside',
+                        singleAxisIndex: 0,
+                        minSpan: 7,
+                        height: 20,
+                        bottom: 50,
+                        handleIcon: 'M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '120%'
+                    }],
+                    series: [{
+                        type: 'custom',
+                        coordinateSystem: 'singleAxis',
+                        renderItem: function (params, api) {
+                            var point = api.coord([
+                                api.value(dims.time),
+                                0
+                            ]);
+                            var all_diff = api.value(dims.all_diff);
+
+                            return {
+                                type: 'group',
+                                children: [
+                                    {
+                                        type: 'bezierCurve',
+                                        name: 'all_diff',
+                                        shape: {
+                                            x1: point[0],
+                                            y1: 50,
+                                            x2: point[0] + LINEWIDTH,
+                                            y2: all_diff > 0 ? 50 - LINEHEIGHT : 50 + LINEHEIGHT,
+                                            cpx1: point[0] + LINEWIDTH,
+                                            cpy1: 50,
+                                            percent: 1
+                                        },
+                                        position: [0, 40],
+                                        style: {
+                                            lineWidth: 2,
+                                            fill: null,
+                                            stroke: all_diff > 0 ? 'red' : 'green'
+                                        }
+                                    }
+                                ]
+                            };
+                        },
+                        encode: {
+                            single: 0
+                        },
+                        data: data
+                    }]
+                });
 
 
-});
-
-</script>
+            });
+        </script>
+    </body>
+</html>
