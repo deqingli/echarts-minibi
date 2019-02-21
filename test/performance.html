@@ -77,7 +77,7 @@ under the License.
 
                 function renderLabel(params, api) {
                     var coordSys = params.coordSys;
-                    var x = coordSys.x - 50;
+                    var x = coordSys.x - BEZIER_OFFSET;
                     var y = coordSys.y + 35
 
                     return {
@@ -89,7 +89,7 @@ under the License.
                                 textFont: api.font({
                                     fontSize: 14
                                 }),
-                                textAlign: 'left',
+                                textAlign: 'right',
                                 textVerticalAlign: 'bottom'
                             },
                             position: [x, y]
@@ -100,7 +100,7 @@ under the License.
                                 textFont: api.font({
                                     fontSize: 14
                                 }),
-                                textAlign: 'center',
+                                textAlign: 'right',
                                 textVerticalAlign: 'bottom'
                             },
                             position: [x, y + DISTANCE]
@@ -111,7 +111,7 @@ under the License.
                                 textFont: api.font({
                                     fontSize: 14
                                 }),
-                                textAlign: 'center',
+                                textAlign: 'right',
                                 textVerticalAlign: 'bottom'
                             },
                             position: [x, y + DISTANCE * 2]
@@ -130,7 +130,7 @@ under the License.
                     },
                     singleAxis: {
                         left: 100,
-                        top: 65,
+                        top: 100,
                         type: 'time',
                         position: 'top'
                     },
@@ -162,12 +162,12 @@ under the License.
                                         type: 'bezierCurve',
                                         name: 'all_diff',
                                         shape: {
-                                            x1: point[0],
-                                            y1: 50,
-                                            x2: point[0] + BEZIER_OFFSET,
-                                            y2: all_diff > 0 ? 50 - BEZIER_OFFSET : 50 + BEZIER_OFFSET,
-                                            cpx1: point[0] + BEZIER_OFFSET,
-                                            cpy1: 50,
+                                            x1: point[0] - BEZIER_OFFSET / 2,
+                                            y1: 85,
+                                            x2: point[0] + BEZIER_OFFSET / 2,
+                                            y2: all_diff > 0 ? 85 - BEZIER_OFFSET : 85 + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET / 2,
+                                            cpy1: 85,
                                             percent: 1
                                         },
                                         position: [0, 40],
@@ -181,12 +181,12 @@ under the License.
                                         type: 'bezierCurve',
                                         name: 'frame_diff',
                                         shape: {
-                                            x1: point[0],
-                                            y1: 50 + DISTANCE,
-                                            x2: point[0] + BEZIER_OFFSET,
-                                            y2: frame_diff > 0 ? 50 + DISTANCE - BEZIER_OFFSET : 50 + DISTANCE + BEZIER_OFFSET,
-                                            cpx1: point[0] + BEZIER_OFFSET,
-                                            cpy1: 50 + DISTANCE,
+                                            x1: point[0] - BEZIER_OFFSET / 2,
+                                            y1: 85 + DISTANCE,
+                                            x2: point[0] + BEZIER_OFFSET / 2,
+                                            y2: frame_diff > 0 ? 85 + DISTANCE - BEZIER_OFFSET : 85 + DISTANCE + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET / 2,
+                                            cpy1: 85 + DISTANCE,
                                             percent: 1
                                         },
                                         position: [0, 40],
@@ -200,12 +200,12 @@ under the License.
                                         type: 'bezierCurve',
                                         name: 'front_diff',
                                         shape: {
-                                            x1: point[0],
-                                            y1: 50 + 65 * 2,
-                                            x2: point[0] + BEZIER_OFFSET,
-                                            y2: front_diff > 0 ? (50 + DISTANCE * 2) - BEZIER_OFFSET : (50 + DISTANCE * 2) + BEZIER_OFFSET,
-                                            cpx1: point[0] + BEZIER_OFFSET,
-                                            cpy1: 50 + DISTANCE * 2,
+                                            x1: point[0] - BEZIER_OFFSET / 2,
+                                            y1: 85 + 65 * 2,
+                                            x2: point[0] + BEZIER_OFFSET / 2,
+                                            y2: front_diff > 0 ? (85 + DISTANCE * 2) - BEZIER_OFFSET : (85 + DISTANCE * 2) + BEZIER_OFFSET,
+                                            cpx1: point[0] + BEZIER_OFFSET / 2,
+                                            cpy1: 85 + DISTANCE * 2,
                                             percent: 1
                                         },
                                         position: [0, 40],
