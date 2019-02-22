@@ -77,8 +77,8 @@ under the License.
 
                 function renderLabel(params, api) {
                     var coordSys = params.coordSys;
-                    var x = coordSys.x - 50;
-                    var y = coordSys.y + 35
+                    var x = coordSys.x - 30;
+                    var y = coordSys.y + 20;
 
                     return {
                         type: 'group',
@@ -90,7 +90,7 @@ under the License.
                                     fontSize: 14
                                 }),
                                 textAlign: 'right',
-                                textVerticalAlign: 'bottom'
+                                textVerticalAlign: 'center'
                             },
                             position: [x, y]
                         }, {
@@ -101,7 +101,7 @@ under the License.
                                     fontSize: 14
                                 }),
                                 textAlign: 'right',
-                                textVerticalAlign: 'bottom'
+                                textVerticalAlign: 'center'
                             },
                             position: [x, y + DISTANCE]
                         }, {
@@ -112,7 +112,7 @@ under the License.
                                     fontSize: 14
                                 }),
                                 textAlign: 'right',
-                                textVerticalAlign: 'bottom'
+                                textVerticalAlign: 'center'
                             },
                             position: [x, y + DISTANCE * 2]
                         }]
@@ -132,6 +132,17 @@ under the License.
                             label: {
                                 show: true
                             }
+                        },
+                        formatter: function (params) {
+                            var diff_all = params[0].value[6] > 0 ? '增加' : '减少';
+                            var diff_frame =  params[0].value[4] > 0 ? '增加' : '减少';
+                            var diff_front = params[0].value[5] > 0 ? '增加' : '减少';
+                            return [
+                                echarts.format.formatTime('yyyy-MM-dd', params[0].value[0]),
+                                '总时长：' + params[0].value[3] + '（ ' + diff_all + ' '+ params[0].value[6] +' ' + ')',
+                                '框架启动时长：' + params[0].value[1] + '（ ' + diff_frame + ' ' + params[0].value[4] + ' ' + ')',
+                                '前端渲染时长：' + params[0].value[2] + '（ ' + diff_front + ' ' + params[0].value[5] + ' ' + ')'
+                            ].join('<br>');
                         }
                     },
                     singleAxis: {
@@ -149,6 +160,15 @@ under the License.
                         axisTick: {
                             lineStyle: {
                                 width: 1
+                            }
+                        },
+                        axisLabel: {
+                            formatter: function (value, index) {
+                                var date = new Date(value);
+                                return [
+                                    date.getFullYear(),
+                                    echarts.format.formatTime('MM-dd', value)
+                                ].join('\n');
                             }
                         },
                         splitLine: {},
@@ -222,7 +242,7 @@ under the License.
                                                 textAlign: 'right',
                                                 textVerticalAlign: 'center'
                                             },
-                                            position: [point[0], all_diff > 0 ? 125 - BEZIER_OFFSET / 2 : 125 + BEZIER_OFFSET / 2]
+                                            position: [point[0] + 3, all_diff > 0 ? 116 : 121]
                                         }]
                                     },
                                     {
@@ -232,11 +252,11 @@ under the License.
                                             name: 'frame_diff',
                                             shape: {
                                                 x1: point[0] - BEZIER_OFFSET / 2,
-                                                y1: 85 + DISTANCE,
+                                                y1: frame_diff > 0 ? 85 + DISTANCE : 85 + DISTANCE - BEZIER_OFFSET,
                                                 x2: point[0] + BEZIER_OFFSET / 2,
-                                                y2: frame_diff > 0 ? 85 + DISTANCE - BEZIER_OFFSET : 85 + DISTANCE + BEZIER_OFFSET,
+                                                y2: frame_diff > 0 ? 85 + DISTANCE - BEZIER_OFFSET : 85 + DISTANCE,
                                                 cpx1: point[0] + BEZIER_OFFSET / 2,
-                                                cpy1: 85 + DISTANCE,
+                                                cpy1: frame_diff > 0 ? 85 + DISTANCE : 85 + DISTANCE - BEZIER_OFFSET,
                                                 percent: 1
                                             },
                                             position: [0, 40],
@@ -260,7 +280,7 @@ under the License.
                                                 textAlign: 'right',
                                                 textVerticalAlign: 'center'
                                             },
-                                            position: [point[0], frame_diff > 0 ? 125 + DISTANCE - BEZIER_OFFSET / 2 : 125 + DISTANCE + BEZIER_OFFSET / 2]
+                                            position: [point[0] + 3, frame_diff > 0 ? 116 + DISTANCE : 121 + DISTANCE]
                                         }]
                                     },
                                     {
@@ -270,11 +290,11 @@ under the License.
                                             name: 'front_diff',
                                             shape: {
                                                 x1: point[0] - BEZIER_OFFSET / 2,
-                                                y1: 85 + 65 * 2,
+                                                y1: front_diff > 0 ? 85 + DISTANCE * 2 : 85 + DISTANCE * 2 - BEZIER_OFFSET,
                                                 x2: point[0] + BEZIER_OFFSET / 2,
-                                                y2: front_diff > 0 ? (85 + DISTANCE * 2) - BEZIER_OFFSET : (85 + DISTANCE * 2) + BEZIER_OFFSET,
+                                                y2: front_diff > 0 ? (85 + DISTANCE * 2) - BEZIER_OFFSET : 85 + DISTANCE * 2,
                                                 cpx1: point[0] + BEZIER_OFFSET / 2,
-                                                cpy1: 85 + DISTANCE * 2,
+                                                cpy1: front_diff > 0 ? 85 + DISTANCE * 2 : 85 + DISTANCE * 2 - BEZIER_OFFSET,
                                                 percent: 1
                                             },
                                             position: [0, 40],
@@ -298,7 +318,7 @@ under the License.
                                                 textAlign: 'right',
                                                 textVerticalAlign: 'center'
                                             },
-                                            position: [point[0], front_diff > 0 ? 125 + DISTANCE * 2 - BEZIER_OFFSET / 2 : 125 + DISTANCE * 2 + BEZIER_OFFSET / 2]
+                                            position: [point[0] + 3, front_diff > 0 ? 116 + DISTANCE * 2: 121 + DISTANCE * 2]
                                         }]
                                     }
                                 ]
