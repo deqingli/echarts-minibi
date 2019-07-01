@@ -1,2 +1,1 @@
-# miniBI-demo
-Demo of ECharts miniBI.
+# echarts-minibi
